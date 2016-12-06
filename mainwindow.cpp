@@ -17,7 +17,8 @@ void MainWindow::on_openButton_clicked()
 {
     QuadImageTree my_tree;
     my_tree.loadImage(ui->lineEdit->text());
-    my_tree.convert2Grayscale();                //To set the image in a grayscale format
+    if(ui->grayscale_checkBox->isChecked())         //Convert to grayscale?
+        my_tree.convert2Grayscale();                //To set the image in a grayscale format
     my_tree.buildQTree(ui->thresholdSpinBox->text().toFloat());
     my_tree.loadQTree();                        //Para volver a cargar la imagen desde el quadTree
     my_tree.paint(ui->lbl_drawer);

@@ -13,19 +13,51 @@ void QuadImageTree::loadImage(const QString &fileName)
 void QuadImageTree::convert2Grayscale()
 {
     qDebug() << "Image conversion to grayscale" << endl;
-    m_picture.convertToFormat(QImage::Format_Mono);
+    m_picture = m_picture.convertToFormat(QImage::Format_Grayscale8);
+    m_size = m_picture.size();
 }
 
 bool QuadImageTree::isInvariant(int _x0, int _xf, int _y0, int _yf, float _threshold)
 {
-    QRgb _color0 = m_picture.pixel(_x0,_y0);
+    float avg = 0.0,
+          var = 0.0,
+          diff = 0.0;
+    size_t size = (_xf-_x0)*(_yf-_y0);
+    if(size < 2)
+        return true;
 
+//    qDebug() << "Size: " << size << endl;
+
+/////////////////  AVERAGE  /////////////////
     for(int _x = _x0;_x < _xf; _x++)
         for(int _y = _y0;_y < _yf; _y++)
-            if(m_picture.pixel(_x,_y) != _color0)
-                return false;
+            avg += m_picture.pixelColor(_x,_y).blue();
+    avg /= size;
+//    qDebug() << "Average: " << avg << endl;
 
-    return true;
+/////////////////  VARIANCE /////////////////
+    for(int _x = _x0;_x < _xf; _x++)
+        for(int _y = _y0;_y < _yf; _y++) {
+            diff = m_picture.pixelColor(_x,_y).blue() - avg;
+            diff *= diff;
+            var += diff;
+        }
+    var /= size;
+    var = sqrt(var);                                //Std deviation
+//    qDebug() << "Variance: " << var << endl;
+//    qDebug() << "var: " << var << "\tthreshold: " << _threshold << "\tdx: " << _xf-_x0 << "\tdy: " << _yf-_y0 << endl;
+
+    return var > _threshold ? false : true;
+
+/////////////////FORMER CODE/////////////////
+//    QRgb _color0 = m_picture.pixel(_x0,_y0);
+
+//    for(int _x = _x0;_x < _xf; _x++)
+//        for(int _y = _y0;_y < _yf; _y++)
+//            if(m_picture.pixel(_x,_y) != _color0)
+//                return false;
+
+//    return true;
 }
 
 void QuadImageTree::buildQTree(float _threshold)
@@ -36,24 +68,24 @@ void QuadImageTree::buildQTree(float _threshold)
 
 void QuadImageTree::buildQTree(QuadImageNode *ptr, int _x0, int _xf, int _y0, int _yf, float _threshold)
 {
-    if(isInvariant(_x0, _xf, _y0, _yf, _threshold)) {
-        ptr->m_color = m_picture.pixel(_x0,_y0);
-//        qDebug() << "Finished building branch!" << endl;
-        return;
-    }
-
     int     _half_x = (_xf - _x0) / 2,
             _half_y = (_yf - _y0) / 2,
             _new_half_x = _x0 + _half_x,
             _new_half_y = _y0 + _half_y;
 
+    if(isInvariant(_x0, _xf, _y0, _yf, _threshold)) {
+        ptr->m_color = m_picture.pixel(_new_half_x,_new_half_y);
+//        qDebug() << "Finished building branch!" << endl;
+        return;
+    }
+
     for(int i = 0; i < 4; i++)
         ptr->m_children[i] = new QuadImageNode();
 
-    buildQTree(ptr->m_children[0], _x0, _new_half_x, _y0, _new_half_y);
-    buildQTree(ptr->m_children[1], _new_half_x, _xf, _y0, _new_half_y);
-    buildQTree(ptr->m_children[2], _x0, _new_half_x, _new_half_y, _yf);
-    buildQTree(ptr->m_children[3], _new_half_x, _xf, _new_half_y, _yf);
+    buildQTree(ptr->m_children[0], _x0, _new_half_x, _y0, _new_half_y, _threshold);
+    buildQTree(ptr->m_children[1], _new_half_x, _xf, _y0, _new_half_y, _threshold);
+    buildQTree(ptr->m_children[2], _x0, _new_half_x, _new_half_y, _yf, _threshold);
+    buildQTree(ptr->m_children[3], _new_half_x, _xf, _new_half_y, _yf, _threshold);
 }
 
 void QuadImageTree::loadQTree()
