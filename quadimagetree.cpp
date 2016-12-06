@@ -8,10 +8,15 @@ void QuadImageTree::loadImage(const QString &fileName)
     m_picture.load(fileName);
 
     m_size = m_picture.size();
-    buildQTree(&m_node, 0, m_size.width(), 0, m_size.height());
 }
 
-bool QuadImageTree::sameColor(int _x0, int _xf, int _y0, int _yf)
+void QuadImageTree::convert2Grayscale()
+{
+    qDebug() << "Image conversion to grayscale" << endl;
+    m_picture.convertToFormat(QImage::Format_Mono);
+}
+
+bool QuadImageTree::isInvariant(int _x0, int _xf, int _y0, int _yf, float _threshold)
 {
     QRgb _color0 = m_picture.pixel(_x0,_y0);
 
@@ -23,11 +28,17 @@ bool QuadImageTree::sameColor(int _x0, int _xf, int _y0, int _yf)
     return true;
 }
 
-void QuadImageTree::buildQTree(QuadImageNode *ptr, int _x0, int _xf, int _y0, int _yf)
+void QuadImageTree::buildQTree(float _threshold)
 {
-    if(sameColor(_x0, _xf, _y0, _yf)) {
+    buildQTree(&m_node, 0, m_size.width(), 0, m_size.height(), _threshold);
+    qDebug() << "Called with threshold: " << _threshold << endl;
+}
+
+void QuadImageTree::buildQTree(QuadImageNode *ptr, int _x0, int _xf, int _y0, int _yf, float _threshold)
+{
+    if(isInvariant(_x0, _xf, _y0, _yf, _threshold)) {
         ptr->m_color = m_picture.pixel(_x0,_y0);
-        qDebug() << "Finished building branch!" << endl;
+//        qDebug() << "Finished building branch!" << endl;
         return;
     }
 
@@ -51,7 +62,7 @@ void QuadImageTree::loadQTree()
     QTreeImage(&m_node, 0, m_size.width(), 0, m_size.height());
 
 //    Guarda el árbol en el disco
-    saveQTree();
+    //saveQTree();
 }
 
 void QuadImageTree::saveQTree()
@@ -62,16 +73,16 @@ void QuadImageTree::saveQTree()
     QDataStream out(&treeOnDisk);
     out << m_size;
 
-//////////////////////////////    DEBUG
-    cout << "SIZE_wr:" << m_size.height() << " " << m_size.width() << endl;
-//////////////////////////////
+////////////////////////////////    DEBUG
+//    cout << "SIZE_wr:" << m_size.height() << " " << m_size.width() << endl;
+////////////////////////////////
     QTree2File(&m_node, out);
 }
 
 void QuadImageTree::loadQTreeFromFile()
 {
     //////////////////////////////    DEBUG
-        cout << "\nOPENING FILE\n_________________________________\n\n";
+//        cout << "\nOPENING FILE\n_________________________________\n\n";
     //////////////////////////////
     QFile treeOnDisk("arbol.QT");
     if(!treeOnDisk.open(QIODevice::ReadWrite))
@@ -79,7 +90,7 @@ void QuadImageTree::loadQTreeFromFile()
     QDataStream in(&treeOnDisk);
     in >> m_size;
     //////////////////////////////    DEBUG
-        cout << m_size.height() << " " << m_size.width() << endl;
+//        cout << m_size.height() << " " << m_size.width() << endl;
     //////////////////////////////
     QTreeFromFile(&m_node, in);
     m_picture.fill(Qt::transparent);
@@ -132,14 +143,14 @@ void QuadImageTree::QTree2File(QuadImageNode *ptr, QDataStream &out)
     if(!ptr) {
         out << 0x000000;
         //////////////////////////////    DEBUG
-        cout << 0x000000 << endl;
+//        cout << 0x000000 << endl;
         //////////////////////////////
         return;
     }
 
     out << ptr->m_color;
     //////////////////////////////    DEBUG
-    cout << ptr->m_color << endl;
+//    cout << ptr->m_color << endl;
     //////////////////////////////
 
     for(int i = 0; i < 4; i++)
@@ -152,7 +163,7 @@ void QuadImageTree::QTreeFromFile(QuadImageNode *ptr, QDataStream &in)
     in >> color;
 
     //////////////////////////////    DEBUG
-    cout << color << ": ";
+//    cout << color << ": ";
     //////////////////////////////
 
     if(color == 0x000000) {
@@ -166,12 +177,12 @@ void QuadImageTree::QTreeFromFile(QuadImageNode *ptr, QDataStream &in)
     ptr->m_color = color;
 
     //////////////////////////////    DEBUG
-    cout << ptr->m_color << endl;
+//    cout << ptr->m_color << endl;
     //////////////////////////////
 
     for(int i = 0; i < 4; i++) {
         //////////////////////////////    DEBUG
-        cout << "Child [" << i << "] will be called, color: ";
+//        cout << "Child [" << i << "] will be called, color: ";
         //////////////////////////////
         QTree2File(ptr->m_children[i], in);
     }

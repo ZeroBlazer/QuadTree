@@ -26,6 +26,10 @@ public:
 
     void loadImage(const QString &fileName);
 
+    void convert2Grayscale();
+
+    void buildQTree(float _threshold=0.0);
+
     void loadQTree();
 
     void loadQTreeFromFile();
@@ -37,9 +41,10 @@ public:
     QuadImageNode m_node;
 
 private:
-    bool sameColor(int _x0, int _xf, int _y0, int _yf);
+    /*Returns true in case it doesn't trespass the threshold */
+    bool isInvariant(int _x0, int _xf, int _y0, int _yf, float _threshold=0.0);
 
-    void buildQTree(QuadImageNode *ptr, int _x0, int _xf, int _y0, int _yf);
+    void buildQTree(QuadImageNode *ptr, int _x0, int _xf, int _y0, int _yf, float _threshold=0.0);
 
     void QTreeImage(QuadImageNode *ptr, int _x0, int _xf, int _y0, int _yf);
 

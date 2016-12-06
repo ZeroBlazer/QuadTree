@@ -39,7 +39,7 @@
         <item>
          <widget class="QLineEdit" name="lineEdit">
           <property name="text">
-           <string>C:/Users/elpum/Documents/Qt/QuadTree/resources/</string>
+           <string>/home/rustycode/Dev/Qt/QuadTree/resources/</string>
           </property>
          </widget>
         </item>
@@ -57,16 +57,25 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="openButton">
-          <property name="text">
-           <string>Open!</string>
+         <widget class="QDoubleSpinBox" name="thresholdSpinBox">
+          <property name="maximumSize">
+           <size>
+            <width>60</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="singleStep">
+           <double>0.500000000000000</double>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="openButton">
           <property name="text">
-           <string>From Disk!</string>
+           <string>Open!</string>
           </property>
          </widget>
         </item>
@@ -82,7 +91,7 @@
      <x>0</x>
      <y>0</y>
      <width>416</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>
